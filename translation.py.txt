@@ -1,0 +1,188 @@
+translation.py
+from flask import Blueprint, request, jsonify
+import requests
+import os
+
+translation_bp = Blueprint('translation', __name__)
+
+# Language code mapping for Google Translate API
+LANGUAGE_MAPPING = {
+    'auto': 'auto',
+    'en': 'en',
+    'es': 'es',
+    'fr': 'fr',
+    'de': 'de',
+    'it': 'it',
+    'pt': 'pt',
+    'ru': 'ru',
+    'ja': 'ja',
+    'ko': 'ko',
+    'zh': 'zh-cn',
+    'ar': 'ar',
+    'hi': 'hi',
+    'tr': 'tr',
+    'nl': 'nl',
+    'sv': 'sv',
+    'da': 'da',
+    'no': 'no',
+    'fi': 'fi',
+    'pl': 'pl'
+}
+
+@translation_bp.route('/translate', methods=['POST'])
+def translate_text():
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        text = data.get('text', '').strip()
+        source_lang = data.get('source', 'auto')
+        target_lang = data.get('target', 'en')
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        # Map language codes
+        source_code = LANGUAGE_MAPPING.get(source_lang, source_lang)
+        target_code = LANGUAGE_MAPPING.get(target_lang, target_lang)
+        
+        # For demo purposes, we'll use a simple mock translation
+        # In a real application, you would integrate with Google Translate API or similar
+        translated_text = mock_translate(text, source_code, target_code)
+        
+        return jsonify({
+            'translatedText': translated_text,
+            'sourceLanguage': source_code,
+            'targetLanguage': target_code
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def mock_translate(text, source_lang, target_lang):
+    """
+    Mock translation function for demonstration.
+    In a real application, replace this with actual API calls to:
+    - Google Cloud Translation API
+    - Microsoft Translator API
+    - DeepL API
+    - Or other translation services
+    """
+    
+    # Simple mock translations for common phrases
+    mock_translations = {
+        ('en', 'es'): {
+            'hello': 'hola',
+            'goodbye': 'adiós',
+            'thank you': 'gracias',
+            'please': 'por favor',
+            'yes': 'sí',
+            'no': 'no',
+            'how are you': 'cómo estás',
+            'good morning': 'buenos días',
+            'good night': 'buenas noches'
+        },
+        ('en', 'fr'): {
+            'hello': 'bonjour',
+            'goodbye': 'au revoir',
+            'thank you': 'merci',
+            'please': 's\'il vous plaît',
+            'yes': 'oui',
+            'no': 'non',
+            'how are you': 'comment allez-vous',
+            'good morning': 'bonjour',
+            'good night': 'bonne nuit'
+        },
+        ('en', 'de'): {
+            'hello': 'hallo',
+            'goodbye': 'auf wiedersehen',
+            'thank you': 'danke',
+            'please': 'bitte',
+            'yes': 'ja',
+            'no': 'nein',
+            'how are you': 'wie geht es dir',
+            'good morning': 'guten morgen',
+            'good night': 'gute nacht'
+        }
+    }
+    
+    # Convert to lowercase for matching
+    text_lower = text.lower().strip()
+    
+    # Check if we have a mock translation
+    if (source_lang, target_lang) in mock_translations:
+        translations = mock_translations[(source_lang, target_lang)]
+        if text_lower in translations:
+            return translations[text_lower]
+    
+    # If no mock translation found, return a formatted response
+    if source_lang == target_lang:
+        return text
+    
+    return f"[Mock Translation from {source_lang} to {target_lang}]: {text}"
+
+def google_translate_api(text, source_lang, target_lang):
+    """
+    Example function for Google Translate API integration.
+    Uncomment and configure this when you have API credentials.
+    """
+    # api_key = os.getenv('GOOGLE_TRANSLATE_API_KEY')
+    # if not api_key:
+    #     raise Exception('Google Translate API key not configured')
+    
+    # url = 'https://translation.googleapis.com/language/translate/v2'
+    # params = {
+    #     'key': api_key,
+    #     'q': text,
+    #     'source': source_lang if source_lang != 'auto' else None,
+    #     'target': target_lang,
+    #     'format': 'text'
+    # }
+    
+    # response = requests.post(url, data=params)
+    # if response.status_code == 200:
+    #     result = response.json()
+    #     return result['data']['translations'][0]['translatedText']
+    # else:
+    #     raise Exception(f'Translation API error: {response.status_code}')
+    pass
+
+def microsoft_translate_api(text, source_lang, target_lang):
+    """
+    Example function for Microsoft Translator API integration.
+    Uncomment and configure this when you have API credentials.
+    """
+    # subscription_key = os.getenv('MICROSOFT_TRANSLATOR_KEY')
+    # endpoint = os.getenv('MICROSOFT_TRANSLATOR_ENDPOINT', 'https://api.cognitive.microsofttranslator.com')
+    
+    # if not subscription_key:
+    #     raise Exception('Microsoft Translator API key not configured')
+    
+    # path = '/translate'
+    # constructed_url = endpoint + path
+    
+    # params = {
+    #     'api-version': '3.0',
+    #     'to': target_lang
+    # }
+    
+    # if source_lang != 'auto':
+    #     params['from'] = source_lang
+    
+    # headers = {
+    #     'Ocp-Apim-Subscription-Key': subscription_key,
+    #     'Content-type': 'application/json',
+    #     'X-ClientTraceId': str(uuid.uuid4())
+    # }
+    
+    # body = [{'text': text}]
+    
+    # response = requests.post(constructed_url, params=params, headers=headers, json=body)
+    # if response.status_code == 200:
+    #     result = response.json()
+    #     return result[0]['translations'][0]['text']
+    # else:
+    #     raise Exception(f'Translation API error: {response.status_code}')
+    pass
